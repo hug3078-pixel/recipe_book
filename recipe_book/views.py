@@ -59,13 +59,16 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         response.data["add_recipe_url"] = "/api/recipes/add/"
         return response
 
+
 class RecipeListCreateView(generics.ListCreateAPIView):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
 
 
 class RecipeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    authentication_classes = [SessionAuthentication, TokenAuthentication]

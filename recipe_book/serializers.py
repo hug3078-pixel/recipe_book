@@ -27,7 +27,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         Customer.objects.create(
             user=user,
             phone_number=phone_number,
-            address=address
+            address=address,
+
         )
         
         return user
@@ -77,27 +78,34 @@ class ProfileSerializer(serializers.ModelSerializer):
         customer.save()
 
         return instance
-
 class RecipeSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(max_length=255)
-    instructions = serializers.CharField()
-    example_image = serializers.ImageField(required=False, allow_null=True)
-    cooking_time = serializers.IntegerField(required=False, allow_null=True, source='cokking_time') 
-    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False, allow_null=True)
-    category = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    author = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    
 
     ingredients = serializers.ListField(
         child=serializers.CharField(),
         allow_empty=True,
-        default=['no ingredients for this recipe'],
+        default=list
+
     )
-    cost = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
     tips = serializers.ListField(
         child=serializers.CharField(),
         allow_empty=True,
-        default=['no tips for this recipe']
+        default=list
+
     )
-class RecipeSerializer(serializers.ModelSerializer):
+    
+
+    cooking_time = serializers.IntegerField(required=False, allow_null=True)
+    cost = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    example_image = serializers.ImageField(required=False, allow_null=True)
+    category = serializers.CharField(max_length=100, required=False, allow_blank=True)
+
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'description', 'ingredients', 'instructions', 'created_at', 'updated_at')
+        fields = (
+            'id', 'name', 'description', 'ingredients', 'instructions', 
+            'example_image', 'cooking_time', 'author', 'category', 
+            'cost', 'tips', 'created_at', 'updated_at'
+        )
+        read_only_fields = ('created_at', 'updated_at')
