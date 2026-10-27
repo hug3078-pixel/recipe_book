@@ -1,9 +1,11 @@
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import render, get_object_or_404 
 from rest_framework import generics, status, permissions 
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication 
 from rest_framework.response import Response
 from .models import Recipe  
-from .serializers import ProfileSerializer, RegisterSerializer, RecipeSerializer
+from .serializers import ProfileSerializer, RegisterSerializer, RecipeSerializer, LogoutSerializer
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 def recipe_list(request):
@@ -38,7 +40,7 @@ class RegisterView(generics.CreateAPIView):
 class ProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [JWTAuthentication, SessionAuthentication, TokenAuthentication]
 
     def get_object(self):
         return self.request.user
@@ -46,11 +48,9 @@ class ProfileView(generics.RetrieveUpdateAPIView):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        
         data = serializer.data
         data["username"] = instance.username
         data["add_recipe_url"] = "/api/recipes/add/" 
-        
         return Response(data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
@@ -59,16 +59,31 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         response.data["add_recipe_url"] = "/api/recipes/add/"
         return response
 
-
 class RecipeListCreateView(generics.ListCreateAPIView):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [JWTAuthentication, SessionAuthentication, TokenAuthentication]
 
 
 class RecipeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [JWTAuthentication, SessionAuthentication, TokenAuthentication]
+
+class LogoutView(generics.GenericAPIView):
+    serializer_class = LogoutSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            refresh_token = serializer.validated_data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({"message": "Successfully logged out"}, status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
