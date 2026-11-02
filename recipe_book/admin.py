@@ -3,8 +3,9 @@ from .models import Customer, Recipe
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ('user', 'phone_number', 'created_at')
+    list_display = ('user', 'phone_number', 'created_at', 'is_verified')
     search_fields = ('user__username', 'phone_number')
+    list_editable = ('is_verified',)
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):

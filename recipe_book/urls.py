@@ -1,10 +1,8 @@
 from django.urls import path
-from rest_framework.authtoken.views import obtain_auth_token  
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from rest_framework_simplejwt.tokens import RefreshToken
 from . import views
 
 app_name = 'recipe_book'
@@ -17,4 +15,9 @@ urlpatterns = [
     path('create_recipe/', views.RecipeListCreateView.as_view(), name='recipe-list-create'),
     path('recipe_detail/<int:pk>/', views.RecipeDetailView.as_view(), name='recipe-detail'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
+    path('<int:pk>/favorite/', views.ToggleFavoriteView.as_view(), name='recipe-favorite'),
+    
+
+    path('create_reviews/<int:pk>/', views.ReviewCreateListAPIView.as_view(), name='recipe-reviews'),
+    path('reviews/<int:pk>/', views.ReviewDetailAPIView.as_view(), name='review-detail'),
 ]
